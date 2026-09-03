@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pokémon GO Triage</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="site-header">
+    <h1>Pokémon GO Triage</h1>
+    <p class="tagline">
+      Build combinable in-game search strings and work a tag-based sweep, so a Pokémon
+      is only cleared for transfer once every keep-reason has been ruled out.
+    </p>
+    <p class="principle">
+      The game is the source of truth. This page holds no box data: it hands you search
+      strings to paste, and you tag and transfer in-game. No login, no automation, no risk.
+    </p>
+  </header>
+
+  <nav class="tabs" id="tabs" role="tablist" aria-label="Sections">
+    <button class="tab" data-panel="sweeps" role="tab" aria-selected="true">Guided sweeps</button>
+    <button class="tab" data-panel="composer" role="tab" aria-selected="false">Query composer</button>
+    <button class="tab" data-panel="integrity" role="tab" aria-selected="false">Integrity check</button>
+    <button class="tab" data-panel="reference" role="tab" aria-selected="false">Token reference</button>
+  </nav>
+
+  <main>
+    <!-- GUIDED SWEEPS -->
+    <section id="panel-sweeps" class="panel" role="tabpanel">
+      <div class="panel-intro">
+        <h2>Initial-sort sweeps</h2>
+        <p>
+          Work these top to bottom. The first six need zero judgment and no Poke Genie.
+          For each: copy the string, paste it into the game's search bar, select all in
+          the result, and apply the listed tags in one multi-select action. Check it off
+          when done — progress is saved on this device.
+        </p>
+        <div class="progress">
+          <div class="progress-bar"><div class="progress-fill" id="sweep-progress-fill"></div></div>
+          <span id="sweep-progress-label" class="progress-label"></span>
+          <button id="reset-sweeps" class="link-btn" type="button">Reset progress</button>
+        </div>
+      </div>
+      <ol id="sweeps-list" class="sweeps-list"></ol>
+    </section>
+
+    <!-- QUERY COMPOSER -->
+    <section id="panel-composer" class="panel" role="tabpanel" hidden>
+      <div class="panel-intro">
+        <h2>Query composer</h2>
+        <p>
+          Click tokens to build a query. Choose how they join, then copy the result into
+          the game. Add your own species or free text with the field at the bottom.
+        </p>
+      </div>
+
+      <div class="composer-join">
+        <span>Join with:</span>
+        <label><input type="radio" name="join" value="&amp;" checked /> AND (<code>&amp;</code>)</label>
+        <label><input type="radio" name="join" value="," /> OR (<code>,</code>)</label>
+      </div>
+
+      <div id="chip-groups" class="chip-groups"></div>
+
+      <form id="freetext-form" class="freetext">
+        <input id="freetext-input" type="text" placeholder="Add a species or raw token, e.g. Medicham or cp1500-" autocomplete="off" />
+        <button type="submit" class="btn">Add</button>
+      </form>
+
+      <div class="query-out">
+        <div class="query-pills" id="query-pills" aria-live="polite"></div>
+        <div class="query-string-row">
+          <code id="query-string" class="query-string">(nothing selected yet)</code>
+          <div class="query-actions">
+            <button id="copy-query" class="btn" type="button">Copy</button>
+            <button id="clear-query" class="btn btn-ghost" type="button">Clear</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- INTEGRITY CHECK -->
+    <section id="panel-integrity" class="panel" role="tabpanel" hidden>
+      <div class="panel-intro">
+        <h2>Integrity cross-check</h2>
+        <p>
+          Your transfer pile is <code>!KEEP</code>. It should contain exactly the same
+          Pokémon as negating every reason tag at once. Run both searches in-game and
+          compare the result counts. If they differ, something got a reason tag but not
+          KEEP (or the reverse): a keeper is at risk. This is the meticulousness guard.
+        </p>
+      </div>
+      <div class="integrity-grid" id="integrity-grid"></div>
+      <p class="integrity-note">
+        Matching counts is a strong signal, not a proof (two offsetting mistakes could
+        still net out). But a mismatch is a guaranteed gap worth hunting down.
+      </p>
+    </section>
+
+    <!-- TOKEN REFERENCE -->
+    <section id="panel-reference" class="panel" role="tabpanel" hidden>
+      <div class="panel-intro">
+        <h2>Token reference</h2>
+        <p>
+          The search grammar and trait tokens. Anything marked
+          <span class="badge badge-unverified">unverified</span> is recalled, not yet
+          confirmed in-game: check it in the game's search box, then trust it.
+        </p>
+      </div>
+      <h3>Operators</h3>
+      <table class="ref-table" id="operators-table"></table>
+      <h3>Trait tokens</h3>
+      <table class="ref-table" id="tokens-table"></table>
+    </section>
+  </main>
+
+  <footer class="site-footer">
+    <p>
+      Source of truth is Pokémon GO itself. This tool never touches your account.
+      Built with vanilla JS, no build step. Developed with AI assistance (Claude Code).
+    </p>
+  </footer>
+
+  <div id="toast" class="toast" hidden></div>
+
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
