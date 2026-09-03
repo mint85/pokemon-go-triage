@@ -6,9 +6,9 @@
  * data file is deliberate: the in-game search grammar is the fiddly, change-prone
  * part, so it lives as editable data, not scattered through the UI code.
  *
- * `verified: false` means the token is recalled from memory, NOT confirmed in-game.
- * Verify it in Pokémon GO's own search box, then flip the flag to true. The app shows
- * an "unverified" badge for anything still false so you never trust it blindly.
+ * `verified: false` means the token hasn't been tested in-game yet. Verify it in
+ * Pokémon GO's own search box, then flip the flag to true. The app shows an
+ * "unverified" badge for anything still false so you never trust it blindly.
  *
  * Loaded as a classic script before app.js; these top-level consts are visible there.
  */
@@ -37,7 +37,6 @@ const operators = [
  * single multi-select action (confirmed you can apply more than one tag at once).
  *   tag    — the exact in-game tag NAME you create and apply
  *   token  — how you surface candidates for this reason in-game (null if none exists)
- *   negate — always the tag name; the integrity check builds !<tag> from it
  * tag and token are kept separate because some reasons (hundo, 4star, pvp) have no
  * direct search token: you find them by other means, then tag them.
  */
@@ -48,9 +47,11 @@ const reasonTags = [
   { id: "cosmetic",   tag: "cosmetic",        label: "Costume / cosmetic", token: "costume",      judgment: "none", pokeGenie: false, verified: true,  note: "Limited-time looks you can't re-catch." },
   { id: "year2016",   tag: "2016",            label: "Legacy 2016",       token: "year2016",      judgment: "none", pokeGenie: false, verified: true,  note: "Launch year. Sentimental peak." },
   { id: "year2017",   tag: "2017",            label: "Legacy 2017",       token: "year2017",      judgment: "none", pokeGenie: false, verified: true,  note: "Year syntax is yearXXXX. Value drops off fast after 2016." },
+  { id: "legendary",  tag: "legendary",       label: "Legendary",         token: "legendary",     judgment: "none", pokeGenie: false, verified: true,  note: "Rare, raid/Master-League value." },
+  { id: "mythical",   tag: "mythical",        label: "Mythical",          token: "mythical",      judgment: "none", pokeGenie: false, verified: true,  note: "Separate search term from legendary (e.g. Keldeo, Mew)." },
+  { id: "specialbg",  tag: "special-bg",      label: "Special background", token: "background",   judgment: "none", pokeGenie: false, verified: false, note: "The event-background icon on the box thumbnail. VERIFY the token (try background / specialbackground / eventbackground)." },
   { id: "xxl",        tag: "xxl",             label: "XXL size",          token: "xxl",           judgment: "none", pokeGenie: false, verified: true,  note: "Separate size tag." },
   { id: "xxs",        tag: "xxs",             label: "XXS size",          token: "xxs",           judgment: "none", pokeGenie: false, verified: true,  note: "Separate size tag." },
-  { id: "legendary",  tag: "legendary",       label: "Legendary / Mythical", token: "legendary", judgment: "none", pokeGenie: false, verified: false, note: "Rare, raid/Master-League value. VERIFY token; else search by species." },
   { id: "regional",   tag: "regional",        label: "Regional exclusive", token: null,           judgment: "none", pokeGenie: false, verified: false, note: "Hard to re-obtain. Found via a species list (no single token)." },
   { id: "hundo",      tag: "hundo",           label: "Perfect IV (100%)", token: "4*",            judgment: "some", pokeGenie: true,  verified: true,  note: "No exact-100% token. 4* narrows the bucket; confirm by appraisal or Poke Genie." },
   { id: "4star",      tag: "4star",           label: "Near-perfect (4★)", token: "4*",            judgment: "some", pokeGenie: true,  verified: true,  note: "Top appraisal bucket that isn't a true hundo. Soft/optional keep (see IV note)." },
@@ -68,13 +69,15 @@ const tokens = [
   { token: "1*", label: "1★", category: "IV / appraisal", meaning: "Low appraisal tier.", verified: false },
   { token: "0*", label: "0★ (nundo bucket)", category: "IV / appraisal", meaning: "Lowest appraisal tier.", verified: false },
   // Status
-  { token: "shiny",    label: "Shiny",    category: "Status", meaning: "Shiny variants.", verified: true },
-  { token: "lucky",    label: "Lucky",    category: "Status", meaning: "Lucky Pokémon (from trades).", verified: true },
-  { token: "shadow",   label: "Shadow",   category: "Status", meaning: "Shadow (Team Rocket) Pokémon.", verified: true },
-  { token: "purified", label: "Purified", category: "Status", meaning: "Purified Pokémon.", verified: true },
-  { token: "costume",  label: "Costume",  category: "Status", meaning: "Costumed / event-cosmetic Pokémon.", verified: true },
-  { token: "legendary", label: "Legendary", category: "Status", meaning: "Legendary / Mythical. VERIFY this token in-game.", verified: false },
-  { token: "favorite", label: "Favorite", category: "Status", meaning: "Favorited (also transfer-protected by the game).", verified: false },
+  { token: "shiny",     label: "Shiny",     category: "Status", meaning: "Shiny variants.", verified: true },
+  { token: "lucky",     label: "Lucky",     category: "Status", meaning: "Lucky Pokémon (from trades).", verified: true },
+  { token: "shadow",    label: "Shadow",    category: "Status", meaning: "Shadow (Team Rocket) Pokémon.", verified: true },
+  { token: "purified",  label: "Purified",  category: "Status", meaning: "Purified Pokémon.", verified: true },
+  { token: "costume",   label: "Costume",   category: "Status", meaning: "Costumed / event-cosmetic Pokémon.", verified: true },
+  { token: "legendary", label: "Legendary", category: "Status", meaning: "Legendary Pokémon.", verified: true },
+  { token: "mythical",  label: "Mythical",  category: "Status", meaning: "Mythical Pokémon. Separate term from legendary.", verified: true },
+  { token: "background", label: "background", category: "Status", meaning: "Special/event background. Token unconfirmed; try background / specialbackground / eventbackground.", verified: false },
+  { token: "favorite",  label: "Favorite",  category: "Status", meaning: "Favorited (also transfer-protected by the game).", verified: false },
   // Size
   { token: "xxl", label: "XXL", category: "Size", meaning: "Extra-large size record.", verified: true },
   { token: "xxs", label: "XXS", category: "Size", meaning: "Extra-small size record.", verified: true },
@@ -117,11 +120,11 @@ const regionalSpecies = [
  * sweeps run first and strip big certain chunks before any effort is spent.
  * Each: paste `string` in-game, select-all in the result, apply `applyTags`.
  *
- * Rule of thumb, so the `!KEEP` question stays clear:
- *   - No-judgment sweeps use the plain token (re-tagging an already-kept Pokémon is
- *     harmless). You WANT to see all of that trait.
- *   - Only the two Poke Genie sweeps offer the `!KEEP` narrowing, because scanning
- *     costs effort and you don't want to re-scan Pokémon already marked safe.
+ * The !KEEP question, settled: EVERY initial-sort sweep uses the plain token/list, so
+ * you see every copy including ones already kept for another reason. That matters most
+ * on the IV and PvP sweeps: your best battler might be a Pokémon you already kept as a
+ * 2016 catch, and you still want to spot and tag it. The `&!KEEP` narrowing is ONLY for
+ * ongoing triage of newly caught Pokémon later, noted in those two sweeps.
  */
 const sweeps = [
   { n: 1, id: "shiny",    title: "Shiny",              string: "shiny",              applyTags: ["shiny", KEEP_TAG],           pokeGenie: false,
@@ -138,14 +141,18 @@ const sweeps = [
     instructions: "Tag XXL records xxl + KEEP." },
   { n: 7, id: "xxs",      title: "XXS size",           string: "xxs",                applyTags: ["xxs", KEEP_TAG],             pokeGenie: false,
     instructions: "Tag XXS records xxs + KEEP. (Kept separate from XXL on purpose.)" },
-  { n: 8, id: "legendary", title: "Legendary / Mythical", string: "legendary",       applyTags: ["legendary", KEEP_TAG],       pokeGenie: false,
-    instructions: "VERIFY the legendary token works; if not, search the species by name. Your event Mewtwo lands here: tag it hundo + legendary + KEEP, and favorite it in-game as a hard transfer-lock." },
-  { n: 9, id: "regional", title: "Regional exclusives", string: "__REGIONAL_LIST__",  applyTags: ["regional", KEEP_TAG],        pokeGenie: false,
+  { n: 8, id: "legendary", title: "Legendary",         string: "legendary",          applyTags: ["legendary", KEEP_TAG],       pokeGenie: false,
+    instructions: "Tag legendary + KEEP. Your event Mewtwo is here (also tag it hundo, special-bg, and favorite it in-game)." },
+  { n: 9, id: "mythical",  title: "Mythical",          string: "mythical",           applyTags: ["mythical", KEEP_TAG],        pokeGenie: false,
+    instructions: "Separate search term from legendary. Tag mythical + KEEP (e.g. Keldeo, Mew)." },
+  { n: 10, id: "specialbg", title: "Special background", string: "background",        applyTags: ["special-bg", KEEP_TAG],      pokeGenie: false,
+    instructions: "The event-background icon on the box thumbnail (e.g. the snowflake mark on your Mewtwo). VERIFY the token in-game: try background, specialbackground, or eventbackground, and correct it in data.js. Tag special-bg + KEEP." },
+  { n: 11, id: "regional", title: "Regional exclusives", string: "__REGIONAL_LIST__",  applyTags: ["regional", KEEP_TAG],       pokeGenie: false,
     instructions: "Hard to replace once gone. The string is a species list (editable in data.js). Tag any you own regional + KEEP." },
-  { n: 10, id: "iv",      title: "Perfect / near-perfect IV", string: "4*",           applyTags: ["hundo | 4star", KEEP_TAG],    pokeGenie: true,
-    instructions: "This shows ALL your 4-stars (use 4*&!KEEP later to see only ones you haven't decided). 4* is the top bucket, NOT exact 100%. Appraise by hand or Poke Genie for exact IV: tag true 100s hundo + KEEP, the rest 4star + KEEP. Note: high IV mainly helps raids/Master League/trophy and is NOT a PvP signal, so 4star is a soft keep. First legit Poke Genie use." },
-  { n: 11, id: "pvp",     title: "Battle League",       string: "__PVP_PREFILTER__",  applyTags: ["pvp", KEEP_TAG],             pokeGenie: true,
-    instructions: "Search runs no PvP rank, and star rating does NOT indicate PvP value. Use this species-prefilter to isolate untagged league-relevant species, then Poke Genie ONLY that shortlist for rank. Tag winners pvp + KEEP. Discard the Poke Genie DB after. Second legit Poke Genie use." },
+  { n: 12, id: "iv",      title: "Perfect / near-perfect IV", string: "4*",           applyTags: ["hundo | 4star", KEEP_TAG],    pokeGenie: true,
+    instructions: "Shows ALL your 4-stars (including ones already kept). 4* is the top bucket, NOT exact 100%. Appraise by hand or Poke Genie for exact IV: tag true 100s hundo + KEEP, the rest 4star + KEEP. Note: high IV mainly helps raids/Master League/trophy and is NOT a PvP signal, so 4star is a soft keep. Ongoing (new catches only) later: use 4*&!KEEP. First legit Poke Genie use." },
+  { n: 13, id: "pvp",     title: "Battle League",       string: "__PVP_LIST__",       applyTags: ["pvp", KEEP_TAG],             pokeGenie: true,
+    instructions: "Shows ALL league-relevant species you own, including ones already kept, because the goal is also to find your best battlers to power up (your best Poliwrath might be a 2016 keeper). Search runs no PvP rank, and star rating does NOT indicate PvP value, so Poke Genie this list for rank and tag winners pvp + KEEP. Discard the Poke Genie DB after. Ongoing (new catches only) later: append &!KEEP. Second legit Poke Genie use." },
 ];
 
 /*
@@ -157,19 +164,19 @@ const manualChecks = [
   { title: "Living dex", detail: "Keep at least one of each species you care about having in the Pokédex, even a bad one. There's no clean search; check before mass-transferring a common species you might be down to your last of." },
 ];
 
-/* Build the sweep-10 (PvP) prefilter: species OR-joined, AND not-already-kept. */
-function pvpPrefilterString() {
-  return pvpSpecies.join(",") + "&!" + KEEP_TAG;
+/* Build the PvP sweep string: the full species list (plain, no !KEEP). */
+function pvpListString() {
+  return pvpSpecies.join(",");
 }
 
-/* Build the regionals sweep string: species OR-joined (no-judgment sweep, plain). */
+/* Build the regionals sweep string: species OR-joined (plain). */
 function regionalListString() {
   return regionalSpecies.join(",");
 }
 
 /* Resolve any placeholder token in a sweep's `string` field. */
 function resolveSweepString(sweep) {
-  if (sweep.string === "__PVP_PREFILTER__") return pvpPrefilterString();
+  if (sweep.string === "__PVP_LIST__") return pvpListString();
   if (sweep.string === "__REGIONAL_LIST__") return regionalListString();
   return sweep.string;
 }

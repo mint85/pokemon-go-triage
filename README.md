@@ -37,21 +37,20 @@ Your transfer pile is then simply everything the search `!KEEP` returns.
 
 ## A note on the tokens
 
-The search tokens are recalled from memory and marked "unverified" until confirmed in
-the game's own search box. Verify them as you go (`data.js` is the single place to
-correct any of them). The `2016` catch-year token and the `xxl` / `xxs` size tokens are
-the first ones worth double-checking.
+Tokens marked "unverified" simply have not been tested in the game's own search box yet.
+Verify them as you go (`data.js` is the single place to correct any of them). Confirmed
+so far: `shiny`, `shadow` / `purified`, `costume`, the `yearXXXX` catch-year syntax,
+`xxl` / `xxs`, `legendary`, `mythical`, and the `4*` / `3*` appraisal buckets.
 
-## Running locally
+## Using it
 
-No build step and no dependencies. Either open `index.html` directly in a browser, or
-serve it (which keeps saved progress reliable across browsers):
+Live at **https://mint85.github.io/pokemon-go-triage/**. It is a static page, so it
+works the same on a phone browser (add it to your home screen for quick access during a
+sort).
 
-```
-npm start
-```
-
-Then visit http://localhost:8000.
+Note: sweep progress is saved per device (browser local storage), so it does not sync
+between your phone and computer. That is fine, since the real state lives in your in-game
+tags, not in this page.
 
 ## Tech
 
