@@ -79,10 +79,6 @@ function saveDone(done) {
   catch { /* private mode etc. — progress just won't persist */ }
 }
 
-function resolveSweepString(sweep) {
-  return sweep.string === "__PVP_PREFILTER__" ? pvpPrefilterString() : sweep.string;
-}
-
 function renderSweeps() {
   const list = $("#sweeps-list");
   const done = loadDone();
@@ -129,6 +125,15 @@ function renderSweeps() {
   });
 
   updateSweepProgress(done);
+  renderManualChecks();
+}
+
+function renderManualChecks() {
+  const ul = $("#manual-checks-list");
+  if (!ul || ul.childElementCount) return; // render once
+  manualChecks.forEach((m) => {
+    ul.append(el("li", {}, el("strong", {}, m.title + ": "), m.detail));
+  });
 }
 
 function updateSweepProgress(done) {
