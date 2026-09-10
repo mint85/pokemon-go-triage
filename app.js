@@ -79,6 +79,82 @@ function saveDone(done) {
   catch { /* private mode etc. — progress just won't persist */ }
 }
 
+/* ---------- initial vs ongoing mode ---------- */
+
+const MODE_KEY = "pgt.mode";
+const AGE_KEY = "pgt.age";
+
+function getMode() {
+  try { return localStorage.getItem(MODE_KEY) === "ongoing" ? "ongoing" : "initial"; }
+  catch { return "initial"; }
+}
+function setMode(m) { try { localStorage.setItem(MODE_KEY, m); } catch { /* no-op */ } }
+function getAge() {
+  try { const v = parseInt(localStorage.getItem(AGE_KEY), 10); return Number.isFinite(v) && v >= 0 ? v : 7; }
+  catch { return 7; }
+}
+function setAge(n) { try { localStorage.setItem(AGE_KEY, String(n)); } catch { /* no-op */ } }
+
+/*
+ * Distribute an age filter across every comma-separated (OR) term. In Pokémon GO
+ * search `&` binds tighter than `,` (comma is the top-level OR separator), so a naive
+ * `A,B&age` would scope only B. `A&age,B&age` reliably means "recent AND (A or B)".
+ */
+function ageScope(str, n) {
+  const age = "age0-" + n;
+  return str.split(",").map((part) => part + "&" + age).join(",");
+}
+
+/* The string shown on a sweep card: age-scoped in ongoing mode, plain otherwise. */
+function sweepDisplayString(sweep) {
+  const base = resolveSweepString(sweep);
+  return getMode() === "ongoing" ? ageScope(base, getAge()) : base;
+}
+
+function renderReviewQueue() {
+  const n = getAge();
+  const codeEl = $("#review-queue-string");
+  if (codeEl) codeEl.textContent = "!" + KEEP_TAG + "&age0-" + n;
+  const hint = $("#ongoing-hint");
+  if (hint) hint.textContent =
+    `Sweep strings below are scoped to Pokémon caught in the last ${n} day${n === 1 ? "" : "s"}.`;
+}
+
+function applyModeUI() {
+  const mode = getMode();
+  document.querySelectorAll(".mode-btn").forEach((b) =>
+    b.classList.toggle("is-active", b.dataset.mode === mode)
+  );
+  const controls = $("#ongoing-controls");
+  if (controls) controls.hidden = mode !== "ongoing";
+}
+
+function wireModeBar() {
+  document.querySelectorAll(".mode-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      setMode(btn.dataset.mode);
+      applyModeUI();
+      renderReviewQueue();
+      renderSweeps();
+    });
+  });
+  const ageInput = $("#age-window");
+  if (ageInput) {
+    ageInput.value = String(getAge());
+    ageInput.addEventListener("input", () => {
+      let n = parseInt(ageInput.value, 10);
+      if (!Number.isFinite(n) || n < 0) n = 0;
+      setAge(n);
+      renderReviewQueue();
+      renderSweeps();
+    });
+  }
+  const copyBtn = $("#copy-review-queue");
+  if (copyBtn) copyBtn.addEventListener("click", () => copyText($("#review-queue-string").textContent));
+  applyModeUI();
+  renderReviewQueue();
+}
+
 function renderSweeps() {
   const list = $("#sweeps-list");
   const done = loadDone();
@@ -117,7 +193,7 @@ function renderSweeps() {
     card.append(
       head,
       el("p", { className: "sweep-instructions", textContent: sweep.instructions }),
-      copyRow(resolveSweepString(sweep)),
+      copyRow(sweepDisplayString(sweep)),
       tags,
       toggle
     );
@@ -282,6 +358,7 @@ function renderReference() {
 
 function init() {
   initTabs();
+  wireModeBar();
   renderSweeps();
   renderComposer();
   renderIntegrity();

@@ -91,7 +91,7 @@ const tokens = [
   { token: "xxl", label: "XXL", category: "Size", meaning: "Extra-large size record.", verified: true },
   { token: "xxs", label: "XXS", category: "Size", meaning: "Extra-small size record.", verified: true },
   // Date
-  { token: "age0-14", label: "age0-14 (last 14 days)", category: "Date", meaning: "Caught within a day range. age0-14 = last two weeks.", verified: false },
+  { token: "age0-14", label: "age0-14 (last 14 days)", category: "Date", meaning: "Days since caught. age0 = caught today; age0-14 = today back through 14 days ago. Confirmed.", verified: true },
   { token: "year2016", label: "year2016 (catch year)", category: "Date", meaning: "Caught in a given year. Syntax is yearXXXX. Confirmed.", verified: true },
   // CP
   { token: "cp1500-", label: "cp1500- (Great League cap-ish)", category: "CP", meaning: "CP range. cp1500- = 1500 and up; -1500 = up to 1500.", verified: false },

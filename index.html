@@ -44,6 +44,26 @@
           <button id="reset-sweeps" class="link-btn" type="button">Reset progress</button>
         </div>
       </div>
+      <div class="mode-bar">
+        <div class="mode-toggle" role="group" aria-label="Sort mode">
+          <button class="mode-btn is-active" data-mode="initial" type="button">Initial sort</button>
+          <button class="mode-btn" data-mode="ongoing" type="button">Ongoing (new catches)</button>
+        </div>
+        <div id="ongoing-controls" class="ongoing-controls" hidden>
+          <label class="age-field">Caught in the last
+            <input id="age-window" type="number" min="0" max="365" value="7" /> days
+          </label>
+          <div class="review-queue">
+            <span class="review-queue-label">Review queue (untagged new catches):</span>
+            <div class="string-row">
+              <code id="review-queue-string" class="query-string"></code>
+              <button id="copy-review-queue" class="btn copy-string-btn" type="button">Copy</button>
+            </div>
+          </div>
+          <p class="ongoing-hint" id="ongoing-hint"></p>
+        </div>
+      </div>
+
       <ol id="sweeps-list" class="sweeps-list"></ol>
 
       <div class="manual-checks">

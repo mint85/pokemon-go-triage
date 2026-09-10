@@ -17,6 +17,7 @@
 }
 
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 
 body {
   margin: 0;
@@ -81,6 +82,24 @@ main { padding: 20px max(16px, 5vw) 48px; max-width: 900px; }
 .sweep-tags { font-size: 0.85rem; color: var(--ink-soft); }
 .sweep-tags code { margin-right: 4px; }
 .sweep-done-toggle { display: inline-flex; align-items: center; gap: 6px; font-size: 0.88rem; cursor: pointer; user-select: none; }
+
+/* Mode bar (initial vs ongoing) */
+.mode-bar { margin-bottom: 16px; }
+.mode-toggle { display: inline-flex; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.mode-btn {
+  appearance: none; background: var(--surface); border: none; cursor: pointer;
+  padding: 8px 14px; font-size: 0.88rem; color: var(--ink-soft);
+}
+.mode-btn + .mode-btn { border-left: 1px solid var(--line); }
+.mode-btn.is-active { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.ongoing-controls {
+  margin-top: 12px; background: #eef4fb; border: 1px solid #d3e2f2;
+  border-radius: var(--radius); padding: 12px 14px; display: grid; gap: 10px;
+}
+.age-field { font-size: 0.9rem; color: var(--ink); }
+.age-field input { width: 64px; padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; font-size: 0.9rem; }
+.review-queue-label { display: block; font-size: 0.82rem; color: var(--ink-soft); margin-bottom: 4px; }
+.ongoing-hint { margin: 0; font-size: 0.82rem; color: var(--ink-soft); }
 
 /* Manual checks note */
 .manual-checks {
