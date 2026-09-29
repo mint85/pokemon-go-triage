@@ -20,15 +20,34 @@
   </header>
 
   <nav class="tabs" id="tabs" role="tablist" aria-label="Sections">
-    <button class="tab" data-panel="sweeps" role="tab" aria-selected="true">Guided sweeps</button>
+    <button class="tab" data-panel="search" role="tab" aria-selected="true">Search terms</button>
+    <button class="tab" data-panel="sweeps" role="tab" aria-selected="false">Guided sweeps</button>
     <button class="tab" data-panel="composer" role="tab" aria-selected="false">Query composer</button>
     <button class="tab" data-panel="integrity" role="tab" aria-selected="false">Integrity check</button>
     <button class="tab" data-panel="reference" role="tab" aria-selected="false">Token reference</button>
   </nav>
 
   <main>
+    <!-- SEARCH TERMS -->
+    <section id="panel-search" class="panel" role="tabpanel">
+      <div class="panel-intro">
+        <h2>Search terms</h2>
+        <p>
+          Ready-made strings for the in-game storage search. Tap Copy, then paste into
+          the search bar. The daily four are pinned at the top.
+        </p>
+      </div>
+      <label class="st-filter" for="st-filter">
+        <span class="visually-hidden">Filter search terms</span>
+        <input id="st-filter" type="search" placeholder="Filter by title, ID, or category"
+          autocomplete="off" autocapitalize="off" spellcheck="false" />
+      </label>
+      <p id="st-empty" class="st-empty" hidden>No search terms match that filter.</p>
+      <div id="st-sections"></div>
+    </section>
+
     <!-- GUIDED SWEEPS -->
-    <section id="panel-sweeps" class="panel" role="tabpanel">
+    <section id="panel-sweeps" class="panel" role="tabpanel" hidden>
       <div class="panel-intro">
         <h2>Initial-sort sweeps</h2>
         <p>
@@ -153,6 +172,7 @@
   <div id="toast" class="toast" hidden></div>
 
   <script src="data.js"></script>
+  <script src="search-terms.js"></script>
   <script src="app.js"></script>
 </body>
 </html>

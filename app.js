@@ -83,6 +83,186 @@ function initTabs() {
   });
 }
 
+/* ---------- search terms ---------- */
+
+/* Render `code` and **bold** spans in description text; everything else is plain text. */
+function richText(text) {
+  const frag = document.createDocumentFragment();
+  text.split(/(`[^`]+`|\*\*[^*]+\*\*)/).forEach((part) => {
+    if (!part) return;
+    if (part.startsWith("`")) frag.append(el("code", { textContent: part.slice(1, -1) }));
+    else if (part.startsWith("**")) frag.append(el("strong", { textContent: part.slice(2, -2) }));
+    else frag.append(part);
+  });
+  return frag;
+}
+
+function renderBlocks(blocks) {
+  const body = el("div", { className: "st-blocks" });
+  blocks.forEach((b) => {
+    if (b.code != null) {
+      body.append(el("pre", {}, el("code", { textContent: b.code })));
+    } else if (b.list) {
+      const list = el(b.ordered ? "ol" : "ul");
+      b.list.forEach((item) => list.append(el("li", {}, richText(item))));
+      body.append(list);
+    } else {
+      const p = el("p");
+      if (b.label) p.append(el("strong", { textContent: b.label + (b.text ? ": " : "") }));
+      p.append(richText(b.text));
+      body.append(p);
+    }
+  });
+  return body;
+}
+
+const STATUS_CLASS = {
+  "Verified": "st-status-verified",
+  "Best Guess": "st-status-guess",
+  "Needs in-game test": "st-status-test",
+};
+
+/* Copy button with on-button confirmation. getValue() returns the exact string. */
+function copyButton(getValue, label) {
+  const btn = el("button", { className: "btn st-copy", type: "button", textContent: "Copy" });
+  if (label) btn.setAttribute("aria-label", "Copy " + label);
+  let timer;
+  btn.addEventListener("click", async () => {
+    const ok = await copyText(getValue(), { quiet: true });
+    btn.textContent = ok ? "Copied ✓" : "Copy failed";
+    btn.classList.toggle("is-copied", ok);
+    btn.classList.toggle("is-failed", !ok);
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+      btn.textContent = "Copy";
+      btn.classList.remove("is-copied", "is-failed");
+    }, 1500);
+  });
+  return btn;
+}
+
+function queryRow(str) {
+  return el("div", { className: "st-query-row" },
+    el("code", { className: "query-string st-query", textContent: str }),
+    copyButton(() => str, str)
+  );
+}
+
+/* Species input + live preview; copy stays disabled until a species is entered. */
+function placeholderRow(entry, template) {
+  const parts = template.split(PLACEHOLDER);
+  const inputId = "st-ph-" + entry.id;
+  const input = el("input", {
+    id: inputId, type: "text", className: "st-ph-input",
+    placeholder: "e.g. medicham", autocomplete: "off", spellcheck: false,
+  });
+  input.setAttribute("autocapitalize", "off");
+  input.setAttribute("autocorrect", "off");
+  input.setAttribute("enterkeyhint", "done");
+
+  const value = () => input.value.trim();
+  const code = el("code", { className: "query-string st-query" });
+  const btn = copyButton(() => parts.join(value()));
+
+  function paint() {
+    const v = value();
+    code.textContent = "";
+    parts.forEach((p, i) => {
+      if (i) code.append(v
+        ? el("span", { className: "st-ph-filled", textContent: v })
+        : el("span", { className: "st-ph", textContent: PLACEHOLDER }));
+      code.append(p);
+    });
+    btn.disabled = !v;
+    btn.setAttribute("aria-label", v ? "Copy " + parts.join(v) : "Enter a species to copy");
+  }
+  input.addEventListener("input", paint);
+  paint();
+
+  return el("div", { className: "st-ph-block" },
+    el("label", { className: "st-ph-label", htmlFor: inputId }, "Species (replaces ", el("code", {}, PLACEHOLDER), ")"),
+    input,
+    el("div", { className: "st-query-row" }, code, btn)
+  );
+}
+
+function searchCard(entry, sectionHeading) {
+  const card = el("article", { className: "st-card" });
+  card.dataset.filter = [entry.id, entry.title, entry.category, sectionHeading].join(" ").toLowerCase();
+
+  card.append(
+    el("div", { className: "st-card-head" },
+      el("span", { className: "st-id", textContent: entry.id }),
+      el("span", { className: "st-cat", textContent: entry.category }),
+      el("span", { className: "badge " + STATUS_CLASS[entry.status], textContent: entry.status })
+    ),
+    el("h4", { className: "st-title", textContent: entry.title }),
+    el("p", { className: "st-when", textContent: entry.whenToUse })
+  );
+
+  const queries = [].concat(entry.query);
+  if (entry.hasPlaceholder) card.append(placeholderRow(entry, queries[0]));
+  else queries.forEach((q) => card.append(queryRow(q)));
+
+  const details = el("details", { className: "st-details" },
+    el("summary", {}, "Details"),
+    renderBlocks(entry.description)
+  );
+  card.append(details);
+  return card;
+}
+
+function renderSearchTerms() {
+  const root = $("#st-sections");
+  root.textContent = "";
+
+  SEARCH_SECTIONS.forEach((sec) => {
+    const entries = searchQueries.filter((q) => q.category === sec.category);
+    if (!entries.length) return;
+    const cards = el("div", { className: "st-cards" });
+    entries.forEach((q) => cards.append(searchCard(q, sec.heading)));
+
+    let wrap;
+    if (sec.collapsed) {
+      wrap = el("details", { className: "st-section st-collapsible" },
+        el("summary", {}, el("h3", { textContent: sec.heading })),
+        cards
+      );
+    } else {
+      wrap = el("section", { className: "st-section" }, el("h3", { textContent: sec.heading }));
+      if (sec.category === "Daily Sort") {
+        wrap.append(el("details", { className: "st-guide" },
+          el("summary", {}, "How the daily four work"),
+          renderBlocks(DAILY_GUIDE)
+        ));
+      }
+      wrap.append(cards);
+    }
+    root.append(wrap);
+  });
+
+  $("#st-filter").addEventListener("input", filterSearchTerms);
+}
+
+/* Hide cards whose ID/title/category don't contain the filter text. */
+function filterSearchTerms() {
+  const q = $("#st-filter").value.trim().toLowerCase();
+  let anyShown = false;
+  document.querySelectorAll("#st-sections .st-section").forEach((sec) => {
+    let shown = 0;
+    sec.querySelectorAll(".st-card").forEach((card) => {
+      const match = !q || card.dataset.filter.includes(q);
+      card.hidden = !match;
+      if (match) shown++;
+    });
+    sec.hidden = shown === 0;
+    // Open collapsed sections that have matches; re-collapse when the filter clears.
+    if (sec.tagName === "DETAILS") sec.open = !!q && shown > 0;
+    if (shown) anyShown = true;
+  });
+  $("#st-empty").hidden = anyShown;
+}
+
 /* ---------- guided sweeps ---------- */
 
 const SWEEP_KEY = "pgt.sweeps.done";
@@ -375,6 +555,7 @@ function renderReference() {
 
 function init() {
   initTabs();
+  renderSearchTerms();
   wireModeBar();
   renderSweeps();
   renderComposer();

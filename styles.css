@@ -51,6 +51,12 @@ body {
 }
 .tab:hover { color: var(--ink); }
 .tab[aria-selected="true"] { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+/* Phones: one swipeable row instead of a sticky bar several rows tall. */
+@media (max-width: 559px) {
+  .tabs { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .tabs::-webkit-scrollbar { display: none; }
+  .tab { flex: none; white-space: nowrap; }
+}
 
 main { padding: 20px max(16px, 5vw) 48px; max-width: 900px; }
 .panel-intro h2 { margin: 8px 0 6px; font-size: 1.2rem; }
@@ -181,6 +187,82 @@ code, .query-string {
 /* Footer */
 .site-footer { border-top: 1px solid var(--line); background: var(--surface); padding: 16px max(16px, 5vw); }
 .site-footer p { margin: 0; font-size: 0.82rem; color: var(--ink-soft); max-width: 80ch; }
+
+/* Search terms (phone-first: 44px tap targets, 16px inputs so iOS doesn't zoom) */
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap;
+}
+.st-filter { display: block; margin-bottom: 18px; }
+.st-filter input, .st-ph-input {
+  width: 100%; min-height: 44px; padding: 10px 12px; font-size: 16px;
+  border: 1px solid var(--line); border-radius: 8px; background: var(--surface); color: var(--ink);
+}
+.st-empty { color: var(--ink-soft); font-size: 0.9rem; }
+.st-section { margin-bottom: 24px; }
+.st-section h3 {
+  margin: 0 0 10px; font-size: 0.82rem; text-transform: uppercase;
+  letter-spacing: 0.04em; color: var(--ink-soft);
+}
+.st-cards { display: grid; gap: 12px; }
+.st-card {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: 14px; display: grid; gap: 8px; min-width: 0;
+}
+.st-card-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.st-id { font-family: var(--mono); font-weight: 700; font-size: 0.82rem; }
+.st-cat { flex: 1; font-size: 0.78rem; color: var(--ink-soft); }
+.st-title { margin: 0; font-size: 1.02rem; font-weight: 650; }
+.st-when { margin: 0; font-size: 0.9rem; color: var(--ink-soft); }
+.st-status-verified { background: #e9f6ee; color: var(--good); }
+.st-status-guess { background: #fbf0e0; color: var(--warn); }
+.st-status-test { background: #eaf1fb; color: #1d4e89; }
+
+/* Long strings have no spaces, so allow breaks anywhere. Display only: copy uses the stored string. */
+.st-query-row { display: flex; flex-direction: column; gap: 8px; }
+/* break-all fills each line to the edge, so it never looks like a break after `age0-` is part of the string. */
+.st-query { word-break: break-all; line-height: 1.5; font-size: 0.9rem; }
+.st-copy { min-height: 44px; min-width: 110px; font-size: 1rem; }
+.st-copy.is-copied { background: var(--good); border-color: var(--good); }
+.st-copy.is-failed { background: var(--warn); border-color: var(--warn); }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; filter: none; }
+@media (min-width: 560px) {
+  .st-query-row { flex-direction: row; align-items: stretch; }
+}
+
+.st-ph-block { display: grid; gap: 8px; }
+.st-ph-label { font-size: 0.86rem; color: var(--ink-soft); }
+.st-ph { background: #fbf0e0; color: var(--warn); padding: 0 2px; border-radius: 3px; }
+.st-ph-filled { background: #e9f6ee; color: var(--good); padding: 0 2px; border-radius: 3px; }
+
+/* Collapsibles: details, the daily guide, and the Historical section */
+.st-details summary, .st-guide summary, .st-collapsible > summary {
+  list-style: none; cursor: pointer; min-height: 44px;
+  display: flex; align-items: center; gap: 8px; user-select: none;
+}
+.st-details summary::-webkit-details-marker, .st-guide summary::-webkit-details-marker,
+.st-collapsible > summary::-webkit-details-marker { display: none; }
+.st-details summary::before, .st-guide summary::before, .st-collapsible > summary::before {
+  content: "▸"; display: inline-block; transition: transform 0.15s ease; color: var(--ink-soft);
+}
+.st-details[open] > summary::before, .st-guide[open] > summary::before,
+.st-collapsible[open] > summary::before { transform: rotate(90deg); }
+.st-details summary, .st-guide summary { font-size: 0.9rem; font-weight: 600; color: var(--accent); }
+.st-collapsible > summary h3 { margin: 0; }
+.st-guide {
+  background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+  padding: 0 14px; margin-bottom: 12px;
+}
+.st-guide[open] { padding-bottom: 12px; }
+.st-blocks { font-size: 0.9rem; }
+.st-blocks p { margin: 0 0 8px; }
+.st-blocks ul, .st-blocks ol { margin: 0 0 8px; padding-left: 20px; }
+.st-blocks li { margin-bottom: 4px; }
+.st-blocks pre {
+  margin: 0 0 8px; background: var(--code-bg); border-radius: 6px; padding: 8px 10px;
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.st-blocks pre code { background: none; padding: 0; }
 
 /* Toast */
 .toast {
