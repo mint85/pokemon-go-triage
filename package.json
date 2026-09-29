@@ -4,6 +4,7 @@
   "description": "Build combinable in-game Pokémon GO search strings and work a tag-based sweep to decide what is safe to transfer.",
   "private": true,
   "scripts": {
-    "start": "python3 -m http.server 8000"
+    "start": "python3 -m http.server 8000",
+    "test": "node --test"
   }
 }

@@ -58,6 +58,7 @@ tags, not in this page.
 ## Tech
 
 Vanilla HTML, CSS, and JavaScript. `data.js` drives the sweep views and `search-terms.js`
-holds the Search terms tab.
+holds the Search terms tab. `npm test` runs a zero-dependency check (Node's built-in test
+runner) that the search strings haven't drifted from their source notes.
 
 This project has been developed with AI assistance (Claude Code).
