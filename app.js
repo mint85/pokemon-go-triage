@@ -21,20 +21,37 @@ function toast(msg) {
   toastTimer = setTimeout(() => (t.hidden = true), 1600);
 }
 
-async function copyText(str) {
-  try {
-    await navigator.clipboard.writeText(str);
-  } catch {
-    // Fallback for file:// or older browsers.
-    const ta = el("textarea", { value: str });
-    ta.style.position = "fixed";
-    ta.style.opacity = "0";
-    document.body.append(ta);
-    ta.select();
-    try { document.execCommand("copy"); } catch { /* give up quietly */ }
-    ta.remove();
+/*
+ * Copy to clipboard. Returns true only if the copy actually happened.
+ * navigator.clipboard exists only in secure contexts (https, localhost), so plain
+ * http on the local network falls back to a hidden textarea + execCommand.
+ * `quiet` skips the toast for callers that show their own confirmation.
+ */
+async function copyText(str, { quiet = false } = {}) {
+  let ok = false;
+  if (navigator.clipboard && window.isSecureContext) {
+    try { await navigator.clipboard.writeText(str); ok = true; } catch { /* try fallback */ }
   }
-  toast("Copied: " + (str.length > 42 ? str.slice(0, 42) + "…" : str));
+  if (!ok) ok = legacyCopy(str);
+  if (!quiet) toast(ok ? "Copied: " + (str.length > 42 ? str.slice(0, 42) + "…" : str) : "Copy failed");
+  return ok;
+}
+
+function legacyCopy(str) {
+  const prevFocus = document.activeElement;
+  const ta = el("textarea", { value: str });
+  ta.setAttribute("aria-hidden", "true");
+  // 16px stops iOS zooming in on focus; off-screen rather than display:none so it can be selected.
+  Object.assign(ta.style, { position: "fixed", top: "0", left: "-9999px", fontSize: "16px" });
+  document.body.append(ta);
+  ta.focus();
+  ta.select();
+  ta.setSelectionRange(0, str.length); // iOS ignores select() alone
+  let ok = false;
+  try { ok = document.execCommand("copy"); } catch { /* unsupported */ }
+  ta.remove();
+  if (prevFocus && prevFocus.focus) prevFocus.focus({ preventScroll: true });
+  return ok;
 }
 
 /* A reusable "code string + Copy" row. */
