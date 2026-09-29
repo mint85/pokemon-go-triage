@@ -1,14 +1,27 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pokémon GO Triage</title>
+  <script>
+    /* Apply a saved theme before first paint so there's no flash. Default: dark. */
+    try {
+      var saved = localStorage.getItem("pgt.theme");
+      if (saved === "light" || saved === "dark") document.documentElement.dataset.theme = saved;
+    } catch (e) { /* storage blocked: stay dark */ }
+  </script>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <header class="site-header">
-    <h1>Pokémon GO Triage</h1>
+    <div class="header-top">
+      <h1>Pokémon GO Triage</h1>
+      <button id="theme-toggle" class="theme-toggle" type="button" aria-pressed="true" aria-label="Dark mode">
+        <span class="theme-toggle-icon" aria-hidden="true"></span>
+        <span class="theme-toggle-label">Dark mode</span>
+      </button>
+    </div>
     <p class="tagline">
       Build combinable in-game search strings and work a tag-based sweep, so a Pokémon
       is only cleared for transfer once every keep-reason has been ruled out.

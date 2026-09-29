@@ -70,6 +70,28 @@ function unverifiedBadge() {
   return el("span", { className: "badge badge-unverified", textContent: "unverified" });
 }
 
+/* ---------- theme ---------- */
+
+const THEME_KEY = "pgt.theme";
+
+/* The head script already applied any saved theme; this wires the toggle. */
+function initTheme() {
+  const btn = $("#theme-toggle");
+  const paint = () => {
+    const dark = document.documentElement.dataset.theme !== "light";
+    btn.setAttribute("aria-pressed", String(dark));
+    $(".theme-toggle-icon", btn).textContent = dark ? "☾" : "☀";
+    $(".theme-toggle-label", btn).textContent = dark ? "Dark mode" : "Light mode";
+  };
+  btn.addEventListener("click", () => {
+    const next = document.documentElement.dataset.theme === "light" ? "dark" : "light";
+    document.documentElement.dataset.theme = next;
+    try { localStorage.setItem(THEME_KEY, next); } catch { /* won't persist */ }
+    paint();
+  });
+  paint();
+}
+
 /* ---------- tabs ---------- */
 
 function initTabs() {
@@ -554,6 +576,7 @@ function renderReference() {
 /* ---------- boot ---------- */
 
 function init() {
+  initTheme();
   initTabs();
   renderSearchTerms();
   wireModeBar();

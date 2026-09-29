@@ -1,19 +1,69 @@
-/* Pokémon GO Triage — styles. Light, readable, card-based. No build step. */
+/* Pokémon GO Triage: styles. Readable, card-based, light and dark themes. No build step. */
 
+/*
+ * Theme tokens. Dark is the default (set on <html data-theme="dark">); the header
+ * toggle switches to light and remembers the choice. Every color lives here.
+ * --accent is for text and borders; --accent-fill is for solid fills under white text.
+ */
 :root {
+  color-scheme: light;
   --bg: #f4f6f8;
   --surface: #ffffff;
   --ink: #1c2230;
   --ink-soft: #5b6472;
   --line: #dce1e8;
   --accent: #c0392b;        /* Poké red, muted */
+  --accent-fill: #c0392b;
   --accent-ink: #ffffff;
-  --good: #2e7d51;
-  --warn: #b26a00;
+  --good: #28704a;
+  --good-bg: #e9f6ee;
+  --good-fill: #2e7d51;
+  --warn: #8f5500;
+  --warn-bg: #fbf0e0;
+  --warn-fill: #8f5500;
+  --info: #1d4e89;
+  --info-bg: #eaf1fb;
+  --panel-info-bg: #eef4fb;
+  --panel-info-line: #d3e2f2;
+  --panel-note-bg: #fbf7ef;
+  --panel-note-line: #ecdcc0;
+  --pill-btn: #d8dde4;
+  --toast-bg: #1c2230;
+  --toast-ink: #ffffff;
   --code-bg: #f0f2f5;
   --radius: 10px;
   --shadow: 0 1px 3px rgba(20, 30, 50, 0.08), 0 1px 2px rgba(20, 30, 50, 0.06);
   --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+}
+
+/* Dark: soft charcoal rather than pure black, off-white text, to reduce glare. */
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #121418;
+  --surface: #1b1e24;
+  --ink: #e3e6eb;
+  --ink-soft: #a0a8b4;
+  --line: #2c313a;
+  --accent: #f07c72;
+  --accent-fill: #b5372c;
+  --accent-ink: #ffffff;
+  --good: #6fcf97;
+  --good-bg: #1b3326;
+  --good-fill: #2b7a4f;
+  --warn: #e8b05c;
+  --warn-bg: #3a2d17;
+  --warn-fill: #9a5c00;
+  --info: #93bdf2;
+  --info-bg: #1c2a3f;
+  --panel-info-bg: #17202c;
+  --panel-info-line: #26374c;
+  --panel-note-bg: #221e16;
+  --panel-note-line: #463a22;
+  --pill-btn: #394049;
+  --toast-bg: #e3e6eb;
+  --toast-ink: #121418;
+  --code-bg: #252a32;
+  --shadow: 0 1px 3px rgba(0, 0, 0, 0.5), 0 1px 2px rgba(0, 0, 0, 0.4);
 }
 
 * { box-sizing: border-box; }
@@ -31,7 +81,15 @@ body {
   border-bottom: 1px solid var(--line);
   padding: 22px max(16px, 5vw) 18px;
 }
+.header-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
 .site-header h1 { margin: 0 0 4px; font-size: 1.5rem; }
+.theme-toggle {
+  flex: none; appearance: none; cursor: pointer; min-height: 44px; padding: 0 14px;
+  display: inline-flex; align-items: center; gap: 6px; font-size: 0.86rem; font-weight: 600;
+  background: var(--code-bg); color: var(--ink); border: 1px solid var(--line); border-radius: 999px;
+}
+.theme-toggle:hover { border-color: var(--accent); }
+.theme-toggle-icon { font-size: 1rem; line-height: 1; }
 .tagline { margin: 0 0 8px; max-width: 70ch; color: var(--ink); }
 .principle {
   margin: 0; max-width: 70ch; font-size: 0.86rem; color: var(--ink-soft);
@@ -79,7 +137,7 @@ main { padding: 20px max(16px, 5vw) 48px; max-width: 900px; }
 .sweep.done { opacity: 0.62; }
 .sweep-head { display: flex; align-items: center; gap: 10px; }
 .sweep-num {
-  flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--accent);
+  flex: none; width: 26px; height: 26px; border-radius: 50%; background: var(--accent-fill);
   color: var(--accent-ink); display: grid; place-items: center; font-size: 0.82rem; font-weight: 700;
 }
 .sweep-title { font-weight: 650; font-size: 1.02rem; margin: 0; flex: 1; }
@@ -97,19 +155,19 @@ main { padding: 20px max(16px, 5vw) 48px; max-width: 900px; }
   padding: 8px 14px; font-size: 0.88rem; color: var(--ink-soft);
 }
 .mode-btn + .mode-btn { border-left: 1px solid var(--line); }
-.mode-btn.is-active { background: var(--accent); color: var(--accent-ink); font-weight: 600; }
+.mode-btn.is-active { background: var(--accent-fill); color: var(--accent-ink); font-weight: 600; }
 .ongoing-controls {
-  margin-top: 12px; background: #eef4fb; border: 1px solid #d3e2f2;
+  margin-top: 12px; background: var(--panel-info-bg); border: 1px solid var(--panel-info-line);
   border-radius: var(--radius); padding: 12px 14px; display: grid; gap: 10px;
 }
 .age-field { font-size: 0.9rem; color: var(--ink); }
-.age-field input { width: 64px; padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; font-size: 0.9rem; }
+.age-field input { width: 64px; padding: 4px 6px; border: 1px solid var(--line); border-radius: 6px; font-size: 0.9rem; background: var(--surface); color: var(--ink); }
 .review-queue-label { display: block; font-size: 0.82rem; color: var(--ink-soft); margin-bottom: 4px; }
 .ongoing-hint { margin: 0; font-size: 0.82rem; color: var(--ink-soft); }
 
 /* Manual checks note */
 .manual-checks {
-  margin-top: 20px; background: #fbf7ef; border: 1px solid #ecdcc0;
+  margin-top: 20px; background: var(--panel-note-bg); border: 1px solid var(--panel-note-line);
   border-radius: var(--radius); padding: 14px 16px;
 }
 .manual-checks h3 { margin: 0 0 4px; font-size: 0.98rem; }
@@ -128,9 +186,9 @@ code, .query-string {
 
 /* Badges & pills */
 .badge { font-size: 0.72rem; padding: 2px 7px; border-radius: 999px; font-weight: 600; white-space: nowrap; }
-.badge-pg { background: #eaf1fb; color: #1d4e89; }
-.badge-nojudge { background: #e9f6ee; color: var(--good); }
-.badge-unverified { background: #fbf0e0; color: var(--warn); }
+.badge-pg { background: var(--info-bg); color: var(--info); }
+.badge-nojudge { background: var(--good-bg); color: var(--good); }
+.badge-unverified { background: var(--warn-bg); color: var(--warn); }
 
 /* Composer */
 .composer-join { display: flex; align-items: center; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; font-size: 0.9rem; }
@@ -147,7 +205,7 @@ code, .query-string {
 .chip .u-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--warn); }
 
 .freetext { display: flex; gap: 8px; margin-bottom: 18px; }
-.freetext input { flex: 1; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 0.9rem; }
+.freetext input { flex: 1; padding: 8px 10px; border: 1px solid var(--line); border-radius: 8px; font-size: 0.9rem; background: var(--surface); color: var(--ink); }
 
 .query-out { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px; }
 .query-pills { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; min-height: 4px; }
@@ -155,14 +213,14 @@ code, .query-string {
   display: inline-flex; align-items: center; gap: 6px; background: var(--code-bg);
   border-radius: 999px; padding: 4px 6px 4px 10px; font-family: var(--mono); font-size: 0.84rem;
 }
-.pill button { border: none; background: #d8dde4; color: var(--ink); border-radius: 50%; width: 18px; height: 18px; cursor: pointer; line-height: 1; font-size: 0.8rem; }
-.pill button:hover { background: var(--accent); color: #fff; }
+.pill button { border: none; background: var(--pill-btn); color: var(--ink); border-radius: 50%; width: 18px; height: 18px; cursor: pointer; line-height: 1; font-size: 0.8rem; }
+.pill button:hover { background: var(--accent-fill); color: var(--accent-ink); }
 .query-string-row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .query-actions { display: flex; gap: 8px; }
 
 /* Buttons */
 .btn {
-  appearance: none; cursor: pointer; border: 1px solid var(--accent); background: var(--accent);
+  appearance: none; cursor: pointer; border: 1px solid var(--accent-fill); background: var(--accent-fill);
   color: var(--accent-ink); border-radius: 8px; padding: 8px 14px; font-size: 0.88rem; font-weight: 600;
 }
 .btn:hover { filter: brightness(1.06); }
@@ -214,17 +272,17 @@ code, .query-string {
 .st-cat { flex: 1; font-size: 0.78rem; color: var(--ink-soft); }
 .st-title { margin: 0; font-size: 1.02rem; font-weight: 650; }
 .st-when { margin: 0; font-size: 0.9rem; color: var(--ink-soft); }
-.st-status-verified { background: #e9f6ee; color: var(--good); }
-.st-status-guess { background: #fbf0e0; color: var(--warn); }
-.st-status-test { background: #eaf1fb; color: #1d4e89; }
+.st-status-verified { background: var(--good-bg); color: var(--good); }
+.st-status-guess { background: var(--warn-bg); color: var(--warn); }
+.st-status-test { background: var(--info-bg); color: var(--info); }
 
 /* Long strings have no spaces, so allow breaks anywhere. Display only: copy uses the stored string. */
 .st-query-row { display: flex; flex-direction: column; gap: 8px; }
 /* break-all fills each line to the edge, so it never looks like a break after `age0-` is part of the string. */
 .st-query { word-break: break-all; line-height: 1.5; font-size: 0.9rem; }
 .st-copy { min-height: 44px; min-width: 110px; font-size: 1rem; }
-.st-copy.is-copied { background: var(--good); border-color: var(--good); }
-.st-copy.is-failed { background: var(--warn); border-color: var(--warn); }
+.st-copy.is-copied { background: var(--good-fill); border-color: var(--good-fill); }
+.st-copy.is-failed { background: var(--warn-fill); border-color: var(--warn-fill); }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; filter: none; }
 @media (min-width: 560px) {
   .st-query-row { flex-direction: row; align-items: stretch; }
@@ -232,8 +290,8 @@ code, .query-string {
 
 .st-ph-block { display: grid; gap: 8px; }
 .st-ph-label { font-size: 0.86rem; color: var(--ink-soft); }
-.st-ph { background: #fbf0e0; color: var(--warn); padding: 0 2px; border-radius: 3px; }
-.st-ph-filled { background: #e9f6ee; color: var(--good); padding: 0 2px; border-radius: 3px; }
+.st-ph { background: var(--warn-bg); color: var(--warn); padding: 0 2px; border-radius: 3px; }
+.st-ph-filled { background: var(--good-bg); color: var(--good); padding: 0 2px; border-radius: 3px; }
 
 /* Collapsibles: details, the daily guide, and the Historical section */
 .st-details summary, .st-guide summary, .st-collapsible > summary {
@@ -267,7 +325,7 @@ code, .query-string {
 /* Toast */
 .toast {
   position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-  background: var(--ink); color: #fff; padding: 10px 16px; border-radius: 8px;
+  background: var(--toast-bg); color: var(--toast-ink); padding: 10px 16px; border-radius: 8px;
   font-size: 0.86rem; box-shadow: var(--shadow); z-index: 20;
 }
 
