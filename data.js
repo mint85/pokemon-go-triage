@@ -27,10 +27,14 @@ const KEEP_TAG = "KEEP";
  * The 65k+ character strings people have used mean length is never a concern.
  * Catch year uses the literal form `year2016` (confirmed in-game).
  *
- * A note on tag names vs tokens: many trait words (shiny, legendary, xxl, dynamax,
- * regional...) are BOTH a native search token and a natural tag name. That collision
- * is harmless here because each such tag is applied to exactly the set the native
- * token returns, so !tag and !token resolve to the same result. The exception is
+ * A note on tag names vs tokens: a plain word matches tag names as well as native
+ * tokens (confirmed in-game: `keep` returns the same Pokémon as `#KEEP`). Many trait
+ * words (shiny, legendary, xxl, dynamax...) are BOTH a native token and a natural tag
+ * name. That collision is harmless here because each such tag is applied to exactly
+ * the set the native token returns, so !tag and !token resolve to the same result.
+ * It does mean a word can look like a working token only because you have a tag by
+ * that name: `regional` is one (it is NOT a native token). To test a token, search
+ * `word&!#tagname`. The exception is
  * NUMBERS: a tag literally named "2016" risks being read as a CP/year, so the year
  * tags are named y2016 / y2017 to stay unambiguous.
  */
@@ -61,7 +65,7 @@ const reasonTags = [
   { id: "dynamax",    tag: "dynamax",         label: "Dynamax",           token: "dynamax",       judgment: "none", pokeGenie: false, verified: true,  note: "Dynamax-capable, for Max Battles. (Gigantamax may be a separate term: verify if you care.)" },
   { id: "xxl",        tag: "xxl",             label: "XXL size",          token: "xxl",           judgment: "none", pokeGenie: false, verified: true,  note: "Separate size tag." },
   { id: "xxs",        tag: "xxs",             label: "XXS size",          token: "xxs",           judgment: "none", pokeGenie: false, verified: true,  note: "Separate size tag." },
-  { id: "regional",   tag: "regional",        label: "Regional exclusive", token: "regional",     judgment: "none", pokeGenie: false, verified: true,  note: "Native `regional` token confirmed. A species-list fallback lives in data.js if it ever fails." },
+  { id: "regional",   tag: "regional",        label: "Regional exclusive", token: null,           judgment: "none", pokeGenie: false, verified: true,  note: "No native token: `regional` only matches Pokémon already tagged regional. Surface candidates with the regionalSpecies list instead." },
   { id: "hundo",      tag: "hundo",           label: "Perfect IV (100%)", token: "4*",            judgment: "some", pokeGenie: true,  verified: true,  note: "No exact-100% token. 4* narrows the bucket; confirm by appraisal or Poke Genie." },
   { id: "4star",      tag: "4star",           label: "Near-perfect (4★)", token: "4*",            judgment: "some", pokeGenie: true,  verified: true,  note: "Top appraisal bucket that isn't a true hundo. Soft/optional keep (see IV note)." },
   { id: "pvp",        tag: "PVP",             label: "Battle League",     token: null,            judgment: "some", pokeGenie: true,  verified: true,  note: "Tag is uppercase PVP. No PvP-rank token; species-prefilter then Poke Genie the shortlist. Star rating is NOT a PvP signal." },
@@ -87,7 +91,7 @@ const tokens = [
   { token: "mythical",  label: "Mythical",  category: "Status", meaning: "Mythical Pokémon. Separate term from legendary.", verified: true },
   { token: "background", label: "background", category: "Status", meaning: "Special/event background. `specialbackground` also works; `eventbackground` does not.", verified: true },
   { token: "dynamax",   label: "Dynamax",   category: "Status", meaning: "Dynamax-capable Pokémon.", verified: true },
-  { token: "regional",  label: "Regional",  category: "Status", meaning: "Regional-exclusive Pokémon. Native token confirmed.", verified: true },
+  { token: "regional",  label: "Regional",  category: "Status", meaning: "NOT a native token. Only matches Pokémon you've tagged regional (plain words match tag names). Use the Regional sweep's species list to find untagged ones.", verified: false },
   { token: "favorite",  label: "Favorite",  category: "Status", meaning: "Favorited (also transfer-protected by the game).", verified: false },
   // Size
   { token: "xxl", label: "XXL", category: "Size", meaning: "Extra-large size record.", verified: true },
@@ -116,14 +120,23 @@ const pvpSpecies = [
 ];
 
 /*
- * Regional exclusives — fallback species list, kept in case the native `regional`
- * token ever misbehaves. The regional sweep uses the token; this is here as a backup.
+ * Regional exclusives, as a species list. There is no native `regional` token (in-game
+ * test: `regional` returned 1 of 3 Durants, the one tagged regional), so the regional
+ * sweep uses this list.
+ *
+ * Species-wide exclusives only, checked 2026-09-29 against Serebii's exclusives page
+ * and Pokémon GO Hub's regional list (both agree on every name here). Form-only
+ * regionals (Shellos, Basculin, Flabébé line, Furfrou, Oricorio, Squawkabilly,
+ * Tatsugiri, Paldean Tauros) are left out: a species name can't target one form.
+ * Galarian Farfetch'd and Galarian Mr. Mime match by name but are NOT regional.
  */
 const regionalSpecies = [
-  "Kangaskhan", "Farfetch'd", "Mr. Mime", "Tauros", "Heracross", "Corsola", "Torkoal",
-  "Zangoose", "Seviper", "Relicanth", "Volbeat", "Illumise", "Tropius", "Pachirisu",
-  "Chatot", "Carnivine", "Pansage", "Pansear", "Panpour", "Maractus", "Sigilyph",
-  "Throh", "Sawk", "Heatmor", "Durant", "Bouffalant", "Emolga", "Klefki",
+  "Kangaskhan", "Farfetch'd", "Mime Jr.", "Mr. Mime", "Tauros", "Heracross", "Corsola",
+  "Torkoal", "Zangoose", "Seviper", "Lunatone", "Solrock", "Relicanth", "Volbeat",
+  "Illumise", "Tropius", "Pachirisu", "Chatot", "Carnivine", "Uxie", "Mesprit", "Azelf",
+  "Pansage", "Simisage", "Pansear", "Simisear", "Panpour", "Simipour", "Maractus",
+  "Sigilyph", "Throh", "Sawk", "Heatmor", "Durant", "Bouffalant", "Klefki", "Hawlucha",
+  "Comfey", "Stonjourner",
 ];
 
 /*
@@ -160,8 +173,8 @@ const sweeps = [
     instructions: "The event-background icon on the box thumbnail. `background` (or `specialbackground`) surfaces them. Tag special-bg + KEEP." },
   { n: 11, id: "dynamax",  title: "Dynamax",           string: "dynamax",            applyTags: ["dynamax", KEEP_TAG],         pokeGenie: false,
     instructions: "Dynamax-capable Pokémon, for Max Battles. Tag dynamax + KEEP. (If you care about Gigantamax specifically, check whether it's a separate search term.)" },
-  { n: 12, id: "regional", title: "Regional exclusives", string: "regional",         applyTags: ["regional", KEEP_TAG],        pokeGenie: false,
-    instructions: "Native `regional` token confirmed. Hard to replace once gone. Tag any you own regional + KEEP. (A species-list fallback lives in data.js.)" },
+  { n: 12, id: "regional", title: "Regional exclusives", string: "__REGIONAL_LIST__", applyTags: ["regional", KEEP_TAG],        pokeGenie: false,
+    instructions: "Hard to replace once gone. There is no native regional token (searching `regional` only finds ones you've already tagged), so this searches a species list instead. Tag any you own regional + KEEP, but skip Galarian Farfetch'd and Galarian Mr. Mime (they match by name and aren't regional)." },
   { n: 13, id: "iv",      title: "Perfect / near-perfect IV", string: "4*",           applyTags: ["hundo | 4star", KEEP_TAG],    pokeGenie: true,
     instructions: "Shows ALL your 4-stars (including ones already kept). 4* is the top bucket, NOT exact 100%. Appraise by hand or Poke Genie for exact IV: tag true 100s hundo + KEEP, the rest 4star + KEEP. Note: high IV mainly helps raids/Master League/trophy and is NOT a PvP signal, so 4star is a soft keep. Ongoing (new catches only) later: use 4*&!KEEP. First legit Poke Genie use." },
   { n: 14, id: "pvp",     title: "Battle League",       string: "__PVP_LIST__",       applyTags: ["PVP", KEEP_TAG],             pokeGenie: true,
