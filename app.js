@@ -315,13 +315,13 @@ function getAge() {
 function setAge(n) { try { localStorage.setItem(AGE_KEY, String(n)); } catch { /* no-op */ } }
 
 /*
- * Distribute an age filter across every comma-separated (OR) term. In Pokémon GO
- * search `&` binds tighter than `,` (comma is the top-level OR separator), so a naive
- * `A,B&age` would scope only B. `A&age,B&age` reliably means "recent AND (A or B)".
+ * Scope a sweep string to recent catches. In Pokémon GO search `,` (OR) binds tighter
+ * than `&` (AND), confirmed in-game: `A,B&age` means "(A or B) AND recent", so one
+ * appended age term scopes every OR term. (Distributing it, `A&age,B&age`, would parse
+ * as `A AND (age or B) AND age` and silently drop B.)
  */
 function ageScope(str, n) {
-  const age = "age0-" + n;
-  return str.split(",").map((part) => part + "&" + age).join(",");
+  return str + "&age0-" + n;
 }
 
 /* The string shown on a sweep card: age-scoped in ongoing mode, plain otherwise. */

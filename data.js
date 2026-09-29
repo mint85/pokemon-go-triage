@@ -22,6 +22,8 @@ const KEEP_TAG = "KEEP";
  *   ,  = OR  (union)
  *   !  = NOT (negation)   — confirmed working with tags (e.g. !KEEP)
  *   -  = range, e.g. cp1500-2500, age0-14
+ * Precedence (confirmed in-game): `,` binds tighter than `&`, so `a&b,c` means
+ * `a AND (b OR c)`. No parentheses; strings are an AND of OR-groups.
  * The 65k+ character strings people have used mean length is never a concern.
  * Catch year uses the literal form `year2016` (confirmed in-game).
  *
